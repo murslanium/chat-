@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}
+    "Регистрация"
+{% endblock %}
+
+{% block body %}
+    <div class="d-grid gap-3" style="grid-template-columns: 2fr 1fr 2fr;">
+
+        <div></div>
+        <div class="custom-form">
+            <form action="{% url 'register' %}" method="post">
+                {% csrf_token %}
+                <h1 class="h3 mb-3 fw-normal">Регистрация</h1>
+
+                {% with errText=validationResult.first_name %}
+                    <div class="form-floating" {% if errText %}data-toggle="tooltip" data-placement="left"
+                         title="{{ errText }}"{% endif %}>
+                        <input type="text" class="form-control {% if errText %}is-invalid{% endif %}"
+                               id="floatingInput1"
+                               name="first_name">
+                        <label for="floatingInput1">ФИО</label>
+                    </div>
+                {% endwith %}
+
+                {% with errText=validationResult.email %}
+                    <div class="form-floating" {% if errText %}data-toggle="tooltip" data-placement="left"
+                         title="{{ errText }}"{% endif %}>
+                        <input type="email" class="form-control {% if errText %}is-invalid{% endif %}"
+                               id="floatingEmail"
+                               name="email">
+                        <label for="floatingEmail">E-mail</label>
+                    </div>
+                {% endwith %}
+
+                {% with errText=validationResult.password %}
+                    <div class="form-floating" {% if errText %}data-toggle="tooltip" data-placement="left"
+                         title="{{ errText }}"{% endif %}>
+                        <input type="password" class="form-control {% if errText %}is-invalid{% endif %}"
+                               id="floatingPassword"
+                               name="password">
+                        <label for="floatingPassword">Пароль</label>
+                    </div>
+                {% endwith %}
+                <button class="w-100 btn btn-lg btn-primary" type="submit">Зарегистрироваться</button>
+            </form>
+            <a href="{% url 'auth' %}" class="">Перейти на форму авторизации</a>
+        </div>
+        <div></div>
+    </div>
+{% endblock %}

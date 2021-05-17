@@ -1,0 +1,12 @@
+{% for message in messages %}
+    <div class="card {% if user.id != message.sender_id %} text-end {% endif %}">
+        <figure>
+            <blockquote class="blockquote">
+                {{ message.message }}
+            </blockquote>
+            <figcaption class="blockquote-footer">
+                {{ message.sender.first_name }}
+            </figcaption>
+        </figure>
+    </div>
+{% endfor %}

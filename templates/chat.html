@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}
+    "Чат"
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid pb-3">
+        <div class="d-grid gap-3" style="grid-template-columns: 1fr 1fr 5fr 1fr 1fr;">
+            <div></div>
+            <div class="bg-light border rounded-3">
+                <div class="d-flex flex-column flex-shrink-0 p-3 bg-light" style="width: 280px;">
+                    <ul class="nav nav-pills flex-column mb-auto">
+                        {% for room in available_rooms %}
+                            <li {% if room.id == current_room %}class="nav-item"{% endif %}>
+                                <a href="{% url 'chat' room_id=room.id %}"
+                                   class="nav-link {% if room.id == current_room %}active{% else %}link-dark{% endif %}"
+                                   aria-current="page">
+                                    {{ room.name }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <hr>
+                    <a class="nav-link link-dark" href="{% url 'create_room' %}">Создать новую комнату</a>
+
+                </div>
+            </div>
+
+            {% if current_room is not None %}
+                <div class="bg-light border rounded-3">
+
+                    <div id="msgList">
+                        {% for message in messages %}
+                            <div class="card {% if user.id != message.sender_id %} text-end {% endif %}">
+                                <figure>
+                                    <blockquote class="blockquote">
+                                        {{ message.message }}
+                                    </blockquote>
+                                    <figcaption class="blockquote-footer">
+                                        {{ message.sender.first_name }}
+                                    </figcaption>
+                                </figure>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <hr>
+                    <form id="sendMessageForm" class="input-group">
+                        <input name="message" id="msgInput" type="text" class="form-control"
+                               placeholder="Текст сообщения"
+                               required>
+                        <input name="room" type="hidden" value="{{ current_room }}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-secondary" id="sendMsg">Отправить</button>
+                    </form>
+                </div>
+                <div class="bg-light border rounded-3">
+                <span class="fs-4">Список пользователей:</span>
+                <br>
+                <div class="d-flex flex-column flex-shrink-0 p-3 bg-light" style="width: 280px;">
+                    <div id="userList">
+                        <ul class="nav nav-pills flex-column mb-auto">
+                            {% for user in users %}
+                                <li class="nav-item link-dark">{{ user.first_name }}</li>
+                                <br>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <hr>
+                    Добавить пользователя:
+                    <form id="addUserForm" class="input-group">
+                        <input name="userId" id="msgInput" type="text" class="form-control"
+                               placeholder="ID пользователя"
+                               required>
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-secondary" id="attachUser">+</button>
+                    </form>
+
+                </div>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+    <script>
+        {% if current_room is not None %}
+            function sendMessage(event) {
+                event.preventDefault();
+                const form = $("#sendMessageForm").serialize();
+                $.post(
+                    "{% url "send_message" %}",
+                    form,
+                    (data) => {
+                        $("#msgList").html(data);
+                        $("#msgInput").val("").focus();
+                    }
+                ).fail((err) => {
+                    alert("Произошла ошибка");
+                    console.log(err);
+                })
+            }
+
+            function addUser(event) {
+                event.preventDefault();
+                const form = $("#addUserForm").serialize();
+                $.post(
+                    "{% url "attach_user" room_id=current_room %}",
+                    form,
+                    (data) => {
+                        $("#userList").html(data)
+                        $("#attachUser").val("")
+                    }
+                ).fail((err) => {
+                    alert("Пользователь не найден")
+                    console.log(err)
+                })
+            }
+
+            $('#sendMessageForm').submit(sendMessage);
+            $('#msgInput').bind("enterKey", sendMessage);
+            $('#addUserForm').submit(addUser);
+
+            setInterval(() => {
+                $.get(
+                    "{% url "message_list" room_id=current_room %}",
+                    (data) => {
+                        $("#msgList").html(data);
+                    }
+                )
+            }, 2000)
+        {% endif %}
+    </script>
+{% endblock %}
